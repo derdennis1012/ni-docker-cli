@@ -5,6 +5,19 @@ echo "📂 Erstelle virtuelle Umgebung für Container-Manager..."
 python3 -m venv /usr/lib/container-manager/env
 source /usr/lib/container-manager/env/bin/activate
 
+#creat /usr/lib/container-manager/requirements.txt
+echo "📂 Erstelle requirements.txt..."
+
+touch /usr/lib/container-manager/requirements.txt
+echo "click" >> /usr/lib/container-manager/requirements.txt
+echo "rich" >> /usr/lib/container-manager/requirements.txt
+echo "pyyaml" >> /usr/lib/container-manager/requirements.txt
+echo "requests" >> /usr/lib/container-manager/requirements.txt
+echo "packaging" >> /usr/lib/container-manager/requirements.txt
+echo "InquirerPy" >> /usr/lib/container-manager/requirements.txt
+echo "docker" >> /usr/lib/container-manager/requirements.txt
+
+
 echo "📂 Prüfe, ob requirements.txt existiert..."
 if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
     echo "🚨 ERROR: /usr/lib/container-manager/requirements.txt nicht gefunden!"

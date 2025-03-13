@@ -1,12 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "📂 Überprüfe, ob das Installationsverzeichnis existiert..."
-mkdir -p /usr/lib/container-manager/
-
-echo "📂 Zeige den Inhalt von /usr/lib/container-manager/ nach Installation:"
-ls -lah /usr/lib/container-manager/
-
 echo "📂 Erstelle virtuelle Umgebung für Container-Manager..."
 python3 -m venv /usr/lib/container-manager/env
 source /usr/lib/container-manager/env/bin/activate

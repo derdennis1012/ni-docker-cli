@@ -1,20 +1,23 @@
 #!/bin/bash
 set -e
 
-echo "Überprüfe, ob das Installationsverzeichnis existiert..."
+echo "📂 Überprüfe, ob das Installationsverzeichnis existiert..."
 mkdir -p /usr/lib/container-manager/
 
-echo "Erstelle virtuelle Umgebung für Container-Manager..."
-python3 -m venv /usr/lib/container-manager/venv
-source /usr/lib/container-manager/venv/bin/activate
+echo "📂 Zeige den Inhalt von /usr/lib/container-manager/ nach Installation:"
+ls -lah /usr/lib/container-manager/
 
-echo "Installiere Abhängigkeiten aus requirements.txt..."
-if [ -f "/usr/lib/container-manager/requirements.txt" ]; then
-    pip install --upgrade pip
-    pip install -r /usr/lib/container-manager/requirements.txt
-else
-    echo "ERROR: /usr/lib/container-manager/requirements.txt nicht gefunden!"
+echo "📂 Erstelle virtuelle Umgebung für Container-Manager..."
+python3 -m venv /usr/lib/container-manager/env
+source /usr/lib/container-manager/env/bin/activate
+
+echo "📂 Prüfe, ob requirements.txt existiert..."
+if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
+    echo "🚨 ERROR: /usr/lib/container-manager/requirements.txt nicht gefunden!"
+    ls -lah /usr/lib/container-manager/  # Debugging: Zeige alle Dateien im Verzeichnis
     exit 1
 fi
 
-echo "Installation abgeschlossen!"
+echo "📂 Installiere Abhängigkeiten..."
+pip install --upgrade pip
+pip install -r /usr/lib/container-manager/requirements.txt

@@ -1,0 +1,56 @@
+name: Build Debian Package
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        distro: [ubuntu-latest, ubuntu-22.04, ubuntu-20.04, debian-11, debian-12]
+    runs-on: ${{ matrix.distro }}
+
+    steps:
+      - name: Repository klonen
+        uses: actions/checkout@v3
+
+      - name: Installiere benötigte Tools
+        run: |
+          sudo apt update
+          sudo apt install -y dpkg-dev build-essential python3 python3-venv
+
+      - name: Erstelle das Paketverzeichnis
+        run: |
+          mkdir -p container-manager_0.1.0/DEBIAN
+          mkdir -p container-manager_0.1.0/usr/local/bin
+          mkdir -p container-manager_0.1.0/usr/lib/container-manager
+
+      - name: Kopiere Debian-Metadaten
+        run: |
+          cp -r debian/DEBIAN container-manager_0.1.0/
+          cp -r debian/usr/* container-manager_0.1.0/usr/
+
+      - name: Kopiere Python-Code
+        run: |
+          cp -r container_manager container-manager_0.1.0/usr/lib/container-manager/
+
+      - name: Baue das .deb-Paket
+        run: |
+          dpkg-deb --build container-manager_0.1.0
+
+      - name: Lade das `.deb`-Paket als Artefakt hoch
+        uses: actions/upload-artifact@v3
+        with:
+          name: container-manager-deb-${{ matrix.distro }}
+          path: container-manager_0.1.0.deb
+
+      - name: Release das `.deb`-Paket (nur auf getaggten Releases)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: container-manager_0.1.0.deb
+          tag_name: ${{ github.ref_name }}
+          body: "Neues Release von Container-Manager für verschiedene Betriebssysteme."

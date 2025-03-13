@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+echo "Erstelle virtuelle Umgebung für Container-Manager..."
+python3 -m venv /usr/lib/container-manager/venv
+source /usr/lib/container-manager/venv/bin/activate
+
+echo "Installiere Abhängigkeiten..."
+pip install --upgrade pip
+pip install -r /usr/lib/container-manager/requirements.txt
+
+echo "Installation abgeschlossen!"

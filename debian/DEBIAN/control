@@ -1,0 +1,9 @@
+Package: container-manager
+Version: 0.1.0
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: Dein Name <dein@example.com>
+Depends: python3, python3-pip, python3-venv
+Description: Ein CLI-Tool zur Verwaltung von Containern.
+ Ein einfaches CLI-Tool zur interaktiven Verwaltung von Docker-Containern.

@@ -1,27 +1,9 @@
 #!/bin/bash
 set -e
 
-echo "📂 Stelle sicher, dass das Installationsverzeichnis existiert..."
+echo "📂 Erstelle Installationsverzeichnis..."
 mkdir -p /usr/lib/container-manager/
 mkdir -p /usr/local/bin/
-
-echo "📂 Erstelle virtuelle Umgebung für Container-Manager..."
-python3 -m venv /usr/lib/container-manager/env
-source /usr/lib/container-manager/env/bin/activate
-
-# Erstelle oder überschreibe die requirements.txt, falls sie nicht existiert
-if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
-    echo "📂 Erstelle requirements.txt..."
-    cat <<EOT > /usr/lib/container-manager/requirements.txt
-click
-rich
-pyyaml
-requests
-packaging
-InquirerPy
-docker
-EOT
-fi
 
 echo "📂 Prüfe, ob requirements.txt existiert..."
 if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
@@ -30,11 +12,11 @@ if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
     exit 1
 fi
 
-echo "📂 Installiere Abhängigkeiten..."
-pip install --upgrade pip
-pip install -r /usr/lib/container-manager/requirements.txt
+echo "📂 Installiere Abhängigkeiten direkt ins System-Python..."
+pip3 install --upgrade pip
+pip3 install -r /usr/lib/container-manager/requirements.txt
 
-# 🚀 WICHTIG: Stelle sicher, dass `netzint-cli` richtig installiert wird!
+# 🚀 Stelle sicher, dass `netzint-cli` in `/usr/local/bin/` installiert wird
 echo "📂 Überprüfe, ob netzint-cli in /usr/local/bin/ vorhanden ist..."
 if [ ! -f "/usr/local/bin/netzint-cli" ]; then
     echo "🚨 Datei nicht gefunden! Manuelles Kopieren..."

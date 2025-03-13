@@ -1,4 +1,3 @@
-%%writefile NETZINT_CLI_DOKUMENTATION.txt
 Netzint CLI – Nextcloud Installation and Update Documentation
 ==============================================================
 

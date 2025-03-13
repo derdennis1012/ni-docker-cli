@@ -5,6 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:
+  release:
+    types:
+      - created
 
 jobs:
   build:
@@ -29,7 +32,7 @@ jobs:
           mkdir -p container-manager_0.1.0/usr/lib/container-manager
 
       - name: Kopiere Debian-Metadaten
-        run: |
+        run: |yml
           cp -r debian/DEBIAN container-manager_0.1.0/
           cp -r debian/usr/* container-manager_0.1.0/usr/
 

@@ -1,4 +1,0 @@
-#!/bin/bash
-echo "Container-Manager wird deinstalliert..."
-rm -rf /usr/lib/container-manager
-rm -f /usr/local/bin/netzint-cli

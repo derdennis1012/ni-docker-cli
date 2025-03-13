@@ -1,30 +1,50 @@
 #!/bin/bash
 set -e
 
+echo "📂 Stelle sicher, dass das Installationsverzeichnis existiert..."
+mkdir -p /usr/lib/container-manager/
+mkdir -p /usr/local/bin/
+
 echo "📂 Erstelle virtuelle Umgebung für Container-Manager..."
 python3 -m venv /usr/lib/container-manager/env
 source /usr/lib/container-manager/env/bin/activate
 
-#creat /usr/lib/container-manager/requirements.txt
-echo "📂 Erstelle requirements.txt..."
-
-touch /usr/lib/container-manager/requirements.txt
-echo "click" >> /usr/lib/container-manager/requirements.txt
-echo "rich" >> /usr/lib/container-manager/requirements.txt
-echo "pyyaml" >> /usr/lib/container-manager/requirements.txt
-echo "requests" >> /usr/lib/container-manager/requirements.txt
-echo "packaging" >> /usr/lib/container-manager/requirements.txt
-echo "InquirerPy" >> /usr/lib/container-manager/requirements.txt
-echo "docker" >> /usr/lib/container-manager/requirements.txt
-
+# Erstelle oder überschreibe die requirements.txt, falls sie nicht existiert
+if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
+    echo "📂 Erstelle requirements.txt..."
+    cat <<EOT > /usr/lib/container-manager/requirements.txt
+click
+rich
+pyyaml
+requests
+packaging
+InquirerPy
+docker
+EOT
+fi
 
 echo "📂 Prüfe, ob requirements.txt existiert..."
 if [ ! -f "/usr/lib/container-manager/requirements.txt" ]; then
     echo "🚨 ERROR: /usr/lib/container-manager/requirements.txt nicht gefunden!"
-    ls -lah /usr/lib/container-manager/  # Debugging: Zeige alle Dateien im Verzeichnis
+    ls -lah /usr/lib/container-manager/  # Debugging
     exit 1
 fi
 
 echo "📂 Installiere Abhängigkeiten..."
 pip install --upgrade pip
 pip install -r /usr/lib/container-manager/requirements.txt
+
+# 🚀 WICHTIG: Stelle sicher, dass `netzint-cli` richtig installiert wird!
+echo "📂 Überprüfe, ob netzint-cli in /usr/local/bin/ vorhanden ist..."
+if [ ! -f "/usr/local/bin/netzint-cli" ]; then
+    echo "🚨 Datei nicht gefunden! Manuelles Kopieren..."
+    cp -f /usr/lib/container-manager/netzint-cli /usr/local/bin/netzint-cli
+fi
+
+echo "📂 Setze Berechtigungen für netzint-cli..."
+chmod +x /usr/local/bin/netzint-cli
+
+echo "📂 Prüfe, ob die Datei jetzt existiert..."
+ls -lah /usr/local/bin/netzint-cli || echo "🚨 Datei wurde nicht kopiert!"
+
+echo "📂 Installation abgeschlossen!"

@@ -1,3 +1,4 @@
 /dist
 /container_manager.egg-info
 /build
+/docker

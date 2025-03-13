@@ -42,7 +42,7 @@ jobs:
           dpkg-deb --build container-manager_0.1.0
 
       - name: Lade das `.deb`-Paket als Artefakt hoch
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: container-manager-deb-${{ matrix.distro }}
           path: container-manager_0.1.0.deb

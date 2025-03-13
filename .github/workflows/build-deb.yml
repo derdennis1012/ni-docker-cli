@@ -33,6 +33,9 @@ jobs:
           mkdir -p container-manager_0.1.0/DEBIAN
           mkdir -p container-manager_0.1.0/usr/local/bin
           mkdir -p container-manager_0.1.0/usr/lib/container-manager
+      
+      - name: Kopiere `requirements.txt` ins Paket
+        run: cp requirements.txt debian/usr/lib/container-manager/
 
       - name: Kopiere Debian-Metadaten
         run: |

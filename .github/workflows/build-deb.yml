@@ -8,7 +8,6 @@ on:
   release:
     types:
       - created
-
 jobs:
   build:
     strategy:
@@ -32,7 +31,7 @@ jobs:
           mkdir -p container-manager_0.1.0/usr/lib/container-manager
 
       - name: Kopiere Debian-Metadaten
-        run: |yml
+        run: |
           cp -r debian/DEBIAN container-manager_0.1.0/
           cp -r debian/usr/* container-manager_0.1.0/usr/
 

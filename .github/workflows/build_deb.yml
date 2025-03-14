@@ -29,16 +29,26 @@ jobs:
           debhelper \
           dh-python \
           fakeroot \
-          devscripts
+          devscripts \
+          stdeb
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools stdeb
+        pip install setuptools wheel
+
+    - name: Build source distribution
+      run: |
+        python setup.py sdist
+
+    - name: Convert source distribution to DEB package
+      run: |
+        py2dsc dist/container-manager-0.1.0.tar.gz
 
     - name: Build DEB package
       run: |
-        python setup.py --command-packages=stdeb.command bdist_deb
+        cd deb_dist/container-manager-0.1.0
+        dpkg-buildpackage -rfakeroot -uc -us
 
     - name: Upload DEB artifact
       uses: actions/upload-artifact@v4

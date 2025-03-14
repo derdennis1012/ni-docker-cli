@@ -25,49 +25,38 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
-          python3-all \
-          debhelper \
+          devscripts \
           dh-make \
-          dh-python \
+          debhelper \
           fakeroot \
-          devscripts
-
-    - name: Verify dh-make installation
-      run: |
-        if ! command -v dh_make &> /dev/null; then
-          echo "❌ dh_make ist nicht installiert!"
-          exit 1
-        fi
-        echo "✅ dh_make ist installiert!"
+          python3-all \
+          python3-stdeb
 
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install setuptools wheel
 
-    - name: Build source distribution
+    - name: Prepare package structure
       run: |
+        # Erstelle notwendige Ordner
+        mkdir -p deb_dist
+
+        # Erstelle Source Distribution
         python setup.py sdist
 
-    - name: Extract source distribution
-      run: |
-        mkdir -p deb_dist
-        cp dist/container-manager-*.tar.gz deb_dist/
-        cd deb_dist
-        tar -xvf container-manager-*.tar.gz
-        extracted_dir=$(ls -d container-manager-*/)
-        echo "Extracted directory: $extracted_dir"
+        # Entpacke Source-Paket
+        tar -xvf dist/*.tar.gz -C deb_dist/
 
-    - name: Create debian/ directory
+    - name: Build DEB package
       run: |
         cd deb_dist/container-manager-*
-        dh_make --createorig -y --single || true
-        ls -la debian/
-
-    - name: Build DEB package using pybuild
-      run: |
-        cd deb_dist/container-manager-*
-        dpkg-buildpackage -us -uc
+        
+        # Initialisiere Debian Packaging
+        dh_make --python --createorig -y -p container-manager_0.1.0 --single
+        
+        # Baue das Debian-Paket
+        dpkg-buildpackage -rfakeroot -uc -us
 
     - name: Upload DEB artifact
       uses: actions/upload-artifact@v4

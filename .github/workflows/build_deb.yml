@@ -30,7 +30,8 @@ jobs:
           debhelper \
           fakeroot \
           python3-all \
-          python3-stdeb
+          python3-stdeb \
+          dh-python
 
     - name: Install Python dependencies
       run: |

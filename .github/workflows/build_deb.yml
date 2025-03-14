@@ -46,12 +46,15 @@ jobs:
         cp dist/container-manager-*.tar.gz deb_dist/
         cd deb_dist
         tar -xvf container-manager-*.tar.gz
-        extracted_dir=$(tar -tzf container-manager-*.tar.gz | head -1 | cut -f1 -d"/")
+        extracted_dir=$(ls -d container-manager-*/)
+        echo "Extracted directory: $extracted_dir"
         cd "$extracted_dir"
 
     - name: Build DEB package using pybuild
       run: |
-        cd deb_dist/container-manager-*
+        extracted_dir=$(ls -d deb_dist/container-manager-*/)
+        echo "Using extracted directory: $extracted_dir"
+        cd "$extracted_dir"
         dh_make --createorig -y --single
         dpkg-buildpackage -us -uc
 

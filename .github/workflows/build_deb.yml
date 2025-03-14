@@ -2,15 +2,14 @@ name: Build DEB Package
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Checkout code
@@ -19,12 +18,18 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'  # Verwende Python 3.11 oder eine andere kompatible Version
+        python-version: '3.11'
 
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential python3-all debhelper dh-python
+        sudo apt-get install -y \
+          build-essential \
+          python3-all \
+          debhelper \
+          dh-python \
+          fakeroot \
+          devscripts
 
     - name: Install Python dependencies
       run: |
@@ -35,8 +40,8 @@ jobs:
       run: |
         python setup.py --command-packages=stdeb.command bdist_deb
 
-    - name: Upload DEB package as artifact
+    - name: Upload DEB artifact
       uses: actions/upload-artifact@v4
       with:
-        name: my_project.deb
+        name: container-manager.deb
         path: deb_dist/*.deb

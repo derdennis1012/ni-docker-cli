@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.11'  # Sichere Version, um Kompatibilitätsprobleme mit stdeb zu vermeiden
 
     - name: Install system dependencies
       run: |
@@ -29,8 +29,7 @@ jobs:
           debhelper \
           dh-python \
           fakeroot \
-          devscripts \
-          python3-stdeb
+          devscripts
 
     - name: Install Python dependencies
       run: |
@@ -41,16 +40,15 @@ jobs:
       run: |
         python setup.py sdist
 
-    - name: Convert source distribution to DEB package
+    - name: Build DEB package using pybuild
       run: |
-        py2dsc --with-python3 dist/container-manager-*.tar.gz
-
-    - name: Build DEB package with pybuild
-      run: |
-        cd deb_dist/container-manager-*
-        debian/rules clean
-        debian/rules build
-        debian/rules binary
+        mkdir -p deb_dist
+        cp dist/container-manager-*.tar.gz deb_dist/
+        cd deb_dist
+        tar -xvf container-manager-*.tar.gz
+        cd container-manager-*
+        dh_make --createorig -y --single
+        dpkg-buildpackage -us -uc
 
     - name: Upload DEB artifact
       uses: actions/upload-artifact@v4

@@ -30,7 +30,7 @@ jobs:
           dh-python \
           fakeroot \
           devscripts \
-          stdeb
+          python3-stdeb
 
     - name: Install Python dependencies
       run: |
@@ -43,12 +43,14 @@ jobs:
 
     - name: Convert source distribution to DEB package
       run: |
-        py2dsc dist/container-manager-0.1.0.tar.gz
+        py2dsc --with-python3 dist/container-manager-*.tar.gz
 
-    - name: Build DEB package
+    - name: Build DEB package with pybuild
       run: |
-        cd deb_dist/container-manager-0.1.0
-        dpkg-buildpackage -rfakeroot -uc -us
+        cd deb_dist/container-manager-*
+        debian/rules clean
+        debian/rules build
+        debian/rules binary
 
     - name: Upload DEB artifact
       uses: actions/upload-artifact@v4

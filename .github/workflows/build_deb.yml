@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'  # Sichere Version, um Kompatibilitätsprobleme mit stdeb zu vermeiden
+        python-version: '3.11'
 
     - name: Install system dependencies
       run: |
@@ -40,13 +40,18 @@ jobs:
       run: |
         python setup.py sdist
 
-    - name: Build DEB package using pybuild
+    - name: Extract source distribution
       run: |
         mkdir -p deb_dist
         cp dist/container-manager-*.tar.gz deb_dist/
         cd deb_dist
         tar -xvf container-manager-*.tar.gz
-        cd container-manager-*
+        extracted_dir=$(tar -tzf container-manager-*.tar.gz | head -1 | cut -f1 -d"/")
+        cd "$extracted_dir"
+
+    - name: Build DEB package using pybuild
+      run: |
+        cd deb_dist/container-manager-*
         dh_make --createorig -y --single
         dpkg-buildpackage -us -uc
 

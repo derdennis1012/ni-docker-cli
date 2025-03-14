@@ -27,9 +27,13 @@ jobs:
           build-essential \
           python3-all \
           debhelper \
+          dh-make \
           dh-python \
           fakeroot \
           devscripts
+
+    - name: Verify dh-make installation
+      run: dh_make --version
 
     - name: Install Python dependencies
       run: |
@@ -48,7 +52,6 @@ jobs:
         tar -xvf container-manager-*.tar.gz
         extracted_dir=$(ls -d container-manager-*/)
         echo "Extracted directory: $extracted_dir"
-        cd "$extracted_dir"
 
     - name: Build DEB package using pybuild
       run: |

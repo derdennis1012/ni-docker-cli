@@ -1,0 +1,7 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: container-manager
+Source: https://github.com/deinname/container-manager
+
+Files: *
+Copyright: 2024 Maintainer Name <maintainer@example.com>
+License: MIT

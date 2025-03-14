@@ -1,0 +1,6 @@
+include debian/README.Debian
+include debian/README.source
+include debian/copyright
+include debian/changelog
+include debian/control
+include debian/rules

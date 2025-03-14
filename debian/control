@@ -1,0 +1,13 @@
+Source: container-manager
+Section: python
+Priority: optional
+Maintainer: Maintainer Name <maintainer@example.com>
+Build-Depends: debhelper-compat (= 13), dh-python, python3-all, python3-setuptools
+Standards-Version: 4.6.0
+Homepage: https://github.com/deinname/container-manager
+
+Package: python3-container-manager
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: A CLI tool to manage Docker containers interactively.
+ This package provides a CLI tool to manage Docker containers interactively.

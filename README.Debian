@@ -3,4 +3,4 @@ container-manager for Debian
 
 This package provides a CLI tool to manage Docker containers interactively.
 
--- Maintainer Name <maintainer@example.com>  Fri, 14 Mar 2025 10:02:57 +0000
+-- Maintainer Name <maintainer@example.com>  Fri, 14 Mar 2025 10:13:54 +0000

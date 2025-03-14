@@ -56,14 +56,6 @@ jobs:
         # Initialisiere Debian Packaging
         dh_make --python --createorig -y -p container-manager_0.1.0
         
-        # Erstelle README.Debian
-        echo "container-manager for Debian" > debian/README.Debian
-        echo "---------------------------" >> debian/README.Debian
-        echo "" >> debian/README.Debian
-        echo "This package provides a CLI tool to manage Docker containers interactively." >> debian/README.Debian
-        echo "" >> debian/README.Debian
-        echo "-- Maintainer Name <maintainer@example.com>  $(date -R)" >> debian/README.Debian
-        
         # Baue das Debian-Paket
         dpkg-buildpackage -rfakeroot -uc -us
 

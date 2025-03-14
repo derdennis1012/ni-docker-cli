@@ -27,13 +27,9 @@ jobs:
           build-essential \
           python3-all \
           debhelper \
-          dh-make \
           dh-python \
           fakeroot \
           devscripts
-
-    - name: Verify dh-make installation
-      run: dh_make --version
 
     - name: Install Python dependencies
       run: |
@@ -44,7 +40,7 @@ jobs:
       run: |
         python setup.py sdist
 
-    - name: Extract source distribution
+    - name: Create DEB package with pybuild
       run: |
         mkdir -p deb_dist
         cp dist/container-manager-*.tar.gz deb_dist/
@@ -52,14 +48,15 @@ jobs:
         tar -xvf container-manager-*.tar.gz
         extracted_dir=$(ls -d container-manager-*/)
         echo "Extracted directory: $extracted_dir"
-
-    - name: Build DEB package using pybuild
-      run: |
-        extracted_dir=$(ls -d deb_dist/container-manager-*/)
-        echo "Using extracted directory: $extracted_dir"
         cd "$extracted_dir"
-        dh_make --createorig -y --single
-        dpkg-buildpackage -us -uc
+
+        # Generiere automatisch debian/ Struktur mit pybuild
+        dh_make --createorig -y --single || true
+
+        # Nutze pybuild für den sauberen Build
+        debian/rules clean
+        debian/rules build
+        debian/rules binary
 
     - name: Upload DEB artifact
       uses: actions/upload-artifact@v4

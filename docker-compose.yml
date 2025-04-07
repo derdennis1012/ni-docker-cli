@@ -1,0 +1,76 @@
+services:
+  nextcloud-cron:
+    container_name: nextcloud-cron
+    depends_on:
+      nextcloud-postgres:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_started
+    entrypoint: /cron.sh
+    image: nextcloud:${NEXTCLOUD_VERSION}-fpm
+    restart: always
+    volumes:
+    - ./data/nc_data:/var/www/html:z
+  nextcloud-fpm:
+    container_name: nextcloud-fpm
+    depends_on:
+      nextcloud-postgres:
+        condition: service_healthy
+      nextcloud-redis:
+        condition: service_started
+    entrypoint:
+    - /bin/bash
+    - -c
+    - apt update && apt install smbclient libsmbclient-dev -y && pecl install smbclient
+      && docker-php-ext-enable smbclient ; /entrypoint.sh php-fpm
+    env_file:
+    - ./nextcloud.env
+    image: nextcloud:${NEXTCLOUD_VERSION}-fpm
+    restart: unless-stopped
+    volumes:
+    - ./data/nc_data:/var/www/html:z
+  nextcloud-nginx:
+    container_name: nextcloud-nginx
+    depends_on:
+      nextcloud-fpm:
+        condition: service_started
+    env_file:
+    - ./nextcloud.env
+    expose:
+    - 443
+    - 80
+    image: ghcr.io/netzint/nextcloud-nginx:latest
+    ports:
+    - 80:80
+    - 443:443
+    restart: unless-stopped
+    volumes:
+    - ./data/nc_data:/var/www/html:z
+  nextcloud-postgres:
+    container_name: nextcloud-postgres
+    env_file:
+    - ./nextcloud.env
+    healthcheck:
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -U nextcloud -d nextcloud -h 127.0.0.1 || exit 1
+      timeout: 5s
+    image: postgres:16.8
+    restart: unless-stopped
+    volumes:
+    - ./data/nc_postgres:/var/lib/postgresql/data:Z
+  nextcloud-redis:
+    command:
+    - redis-server
+    - --appendonly
+    - 'yes'
+    container_name: nextcloud-redis
+    env_file:
+    - ./nextcloud.env
+    image: redis:7.4.2
+    restart: unless-stopped
+    volumes:
+    - ./data/nc_redis:/data

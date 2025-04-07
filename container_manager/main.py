@@ -481,7 +481,7 @@ def start_menu():
         "type": "list",
         "name": "service",
         "message": "For which service would you like to perform the action?",
-        "choices": ["Nextcloud", "Moodle"],
+        "choices": ["Nextcloud"],
         "default": "Nextcloud"
     }])
     action = prompt([{

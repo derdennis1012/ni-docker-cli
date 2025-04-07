@@ -1,228 +1,180 @@
-Netzint CLI – Nextcloud Installation and Update Documentation
-==============================================================
+# Setting Up and Using Python Virtual Environment (venv)
 
-Version: 1.0
-Erstellt am: 2025-03-13
+## Table of Contents
+1. [System Preparation](#system-preparation)
+2. [Installing the Script](#installing-the-script)
+3. [Installing Nextcloud](#installing-nextcloud)
+   - [Automated Installation](#automated-installation)
+   - [Manual Installation](#manual-installation)
+4. [Updating Nextcloud](#updating-nextcloud)
 
---------------------------------------------------
-Inhaltsverzeichnis
---------------------------------------------------
-1. Überblick
-2. Features
-3. Systemvoraussetzungen
-4. Installation und Setup
-5. Nutzung der CLI
-   5.1 Starten der CLI
-   5.2 Installationsprozess
-   5.3 Updateprozess
-6. Konfiguration und Einstellungen
-7. Code-Struktur & Entwicklerdokumentation
-   7.1 Dateistruktur
-   7.2 Wichtige Funktionen
-   7.3 Externe Bibliotheken
-   7.4 Erweiterungsmöglichkeiten
-8. Fehlerbehebung und FAQ
-9. Anhang
-10. Lizenz und Mitwirkende
---------------------------------------------------
+---
 
-1. Überblick
-------------
-Netzint CLI ist ein Command-Line-Interface (CLI) Tool, das die Installation und Aktualisierung einer Nextcloud-FPM-Instanz in Kombination mit unterstützenden Services wie PostgreSQL, Redis und Nginx automatisiert. Die Anwendung verwendet Docker und Docker Compose, um alle Komponenten in Containern zu betreiben und bietet dabei:
+## System Preparation
 
-- Automatisierte Einrichtung durch interaktive Prompts
-- Versionierung: Automatisches Abrufen gültiger Docker-Image-Versionen von Docker Hub
-- Konfigurationsgenerierung: Erstellung von docker-compose.yml und nextcloud.env
-- Update-Mechanismus: Schrittweises Aktualisieren von Nextcloud auf neuere Versionen
+### Requirements
+Before proceeding, ensure you are using **Ubuntu** with the following requirements:
 
-2. Features
------------
-+ Automatische Installation:
-  Führt den Nutzer durch einen geführten Einrichtungsprozess mit automatischer Generierung von Passwörtern und Konfigurationsdateien.
-+ Version Management:
-  Ruft gültige Versionen für Nextcloud-FPM, PostgreSQL, Redis und Nginx direkt von Docker Hub ab.
-+ Docker Compose Integration:
-  Erstellt und verwaltet die docker-compose.yml, um Container einfach zu starten und zu stoppen.
-+ Updateprozess:
-  Erkennt die aktuell installierte Version und ermöglicht ein schrittweises Update auf neue Major-Versionen.
+- **Primary disk**: 50GB
+- **Secondary disk**: At least 250GB (adjust as needed for your storage requirements)
 
-3. Systemvoraussetzungen
-------------------------
-- Python 3.6+
-- Docker & Docker Compose (müssen installiert und betriebsbereit sein)
-- Internetverbindung (zum Abrufen von Docker Hub-Daten)
-- Folgende Python-Bibliotheken:
-  - requests
-  - docker
-  - PyYAML
-  - InquirerPy
-  - rich
-  - packaging
+### Installing Docker
+Run the following script to install Docker:
 
-4. Installation und Setup
--------------------------
-1. Repository klonen oder herunterladen:
-   git clone https://github.com/dein-benutzername/netzint-cli.git
-   cd netzint-cli
+```bash
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
 
-2. Abhängigkeiten installieren:
-   pip install -r requirements.txt
+### Partitioning and Mounting the Secondary Disk
 
-3. Docker starten:
-   Stelle sicher, dass Docker und Docker Compose korrekt installiert und gestartet sind.
+#### Checking Available Disks
+Run the following command to list available disks:
+```bash
+fdisk -l
+```
+Example output:
+```plaintext
+Disk /dev/sda: 50 GiB, 53687091200 bytes, 104857600 sectors
+Disk /dev/sdb: 250 GiB, 268435456000 bytes, 524288000 sectors
+```
+#### Formatting the Disk
+```bash
+mkfs.ext4 /dev/sdb
+```
+#### Retrieving the UUID
+```bash
+blkid
+```
+Example output:
+```plaintext
+/dev/sdb: UUID="f0fe2cb4-7dc2-4221-b2d7-43dca43a3151" BLOCK_SIZE="4096" TYPE="ext4"
+```
+#### Adding to fstab
+Edit `/etc/fstab`:
+```bash
+nano /etc/fstab
+```
+Add the following line:
+```plaintext
+UUID=f0fe2cb4-7dc2-4221-b2d7-43dca43a3151 /srv/docker/nextcloud ext4 defaults 0 2
+```
+#### Mounting the Disk
+```bash
+mkdir -p /srv/docker/nextcloud
+mount -a
+```
+Check if the disk is mounted correctly:
+```bash
+df -h
+```
+Example output:
+```plaintext
+/dev/sdb        246G   28K  233G   1% /srv/docker/nextcloud
+```
+#### Removing `lost+found` Directory
+After mounting, the `lost+found` directory is automatically created on ext4 filesystems. It should be removed before proceeding:
+```bash
+rm -rf /srv/docker/nextcloud/lost+found
+```
 
-5. Nutzung der CLI
-------------------
-5.1 Starten der CLI
-   Die Anwendung wird über den Befehl "ni-cli" gestartet. Nutze dazu:
-      ./ni-cli
-   Falls die Datei nicht ausführbar ist:
-      python3 ni-cli.py
+If you want to install the container manually you can continue with [manual install](#updating-nextcloud)
 
-5.2 Installationsprozess
-   Beim Starten der CLI erscheint ein Menü:
-   - Service Auswahl:
-     Aktuell wird nur Nextcloud unterstützt (Moodle ist noch in Entwicklung).
-   - Aktion wählen:
-     Wähle zwischen "Installation" und "Update".
-   - Basisverzeichnis festlegen:
-     Standardmäßig wird "./docker/nextcloud/" als Basispfad verwendet.
-   - Interaktive Konfiguration:
-     a) Automatische Installation:
-        - Zufällig generierte Passwörter für PostgreSQL, Redis und den Nextcloud-Admin.
-        - Anlage notwendiger lokaler Verzeichnisse.
-        - Erstellung von Konfigurationsdateien (docker-compose.yml, nextcloud.env, Nginx-Konfiguration).
-     b) Manuelle Konfiguration:
-        - Eigene Passwörter und Einstellungen können eingegeben werden.
-        - Versionen für PostgreSQL, Redis, Nextcloud-FPM und Nginx lassen sich manuell auswählen.
+---
 
-5.3 Updateprozess
-   Der Updateprozess umfasst folgende Schritte:
-   - Versionsdetektion:
-     Das Tool erkennt die aktuell installierte Nextcloud-Version anhand des Container-Namens (enthält "nextcloud-fpm").
-   - Updatepfad erstellen:
-     Es wird ein Updatepfad für Major-Versionen zusammengestellt.
-   - Versionsauswahl:
-     Du kannst wählen, ob auf die neueste Version oder auf eine bestimmte Zielversion aktualisiert wird.
-   - Schrittweises Update:
-     * Container werden gestoppt.
-     * Die docker-compose.yml wird angepasst.
-     * Die Container werden neu gestartet.
-     * Zwischen den Schritten erfolgt eine Wartezeit, um sicherzustellen, dass Nextcloud betriebsbereit ist.
-     * Interne OCC-Befehle (Nextcloud-Befehle) aktualisieren die Datenbank und Konfiguration.
-   - Zusätzliche Container:
-     Optional können auch Updates für PostgreSQL, Redis und Nginx separat durchgeführt werden.
+## Installing the Script
 
-6. Konfiguration und Einstellungen
-------------------------------------
-Folgende Dateien werden generiert:
-- docker-compose.yml:
-  Enthält alle Service-Definitionen und Volume-Mappings.
-  Beispiel:
-    services:
-      postgres:
-        image: postgres:13
-        volumes:
-          - ./docker/nextcloud/data/nc_postgres:/var/lib/postgresql/data:Z
-        env_file:
-          - ./docker/nextcloud/nextcloud.env
+### Creating a Virtual Environment
+```bash
+python3 -m venv env
+```
 
-- nextcloud.env:
-  Speichert alle sensiblen Umgebungsvariablen (Datenbankpasswörter, Admin-Credentials etc.).
-  Beispiel:
-    POSTGRES_PASSWORD=dein_passwort
-    NEXTCLOUD_DB_USER=nextcloud
-    POSTGRES_USER=nextcloud
-    POSTGRES_DB=nextcloud
-    NEXTCLOUD_DB_PASSWORD=dein_passwort
-    REDIS_PASS=dein_passwort
-    NEXTCLOUD_ADMIN_USER=admin
-    NEXTCLOUD_ADMIN_PASSWORD=dein_passwort
-    POSTGRES_HOST=postgres
-    REDIS_HOST=redis
+### Activating the Virtual Environment
+```bash
+source env/bin/activate  # Linux/macOS
+env\Scripts\activate     # Windows
+```
 
-- Nginx-Konfiguration:
-  Befindet sich im Unterordner "app/" und besteht aus nginx.conf sowie einem einfachen Dockerfile.
+### Installing Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-- Portkonfiguration:
-  Standardmäßig wird HTTP auf Port 8080 und HTTPS auf Port 8443 zugewiesen (sofern nicht anders festgelegt).
+### Running the Script
+```bash
+python nextcloud-cli.py
+```
 
-7. Code-Struktur & Entwicklerdokumentation
--------------------------------------------
-7.1 Dateistruktur
-   netzint-cli/
-     ├── ni-cli.py                   # Hauptanwendung
-     ├── README.md                   # Dokumentation (dieses Dokument)
-     ├── requirements.txt            # Abhängigkeiten
-     └── (weitere Konfigurations- und Supportdateien)
+### Deactivating the Virtual Environment
+```bash
+deactivate
+```
 
-7.2 Wichtige Funktionen
-   - Version Fetching:
-     * fetch_nextcloud_fpm_versions(): Sammelt gültige Nextcloud-FPM-Versionen von Docker Hub.
-     * fetch_semver_versions(): Ruft semantische Versionen für PostgreSQL, Redis und Nginx ab.
-   - Konfigurationsdateien erstellen:
-     * write_compose_file(): Schreibt die docker-compose.yml.
-     * create_env_file(): Erzeugt die Datei nextcloud.env.
-   - Service Management:
-     * run_installation(): Führt den Installationsprozess durch.
-     * run_update_process(): Steuert den Updateprozess für Nextcloud.
-     * update_docker_compose_images(): Aktualisiert die Image-Versionen in der Compose-Datei.
-   - Hilfsfunktionen:
-     * generate_password(): Erstellt sichere Zufallspasswörter.
-     * maybe_container_name(): Generiert Container-Namen basierend auf dem Servicenamen und der Version.
+---
 
-7.3 Externe Bibliotheken
-   Bibliothek      Zweck
-   ------------- -----------------------------------------------------------
-   requests      HTTP-Anfragen zum Abrufen von Docker Hub-Daten
-   docker        Interaktion mit der Docker Engine
-   PyYAML        Lesen und Schreiben von YAML-Dateien
-   InquirerPy    Interaktive CLI-Prompts
-   rich          Formatierte Konsolenausgaben
-   packaging     Vergleich und Validierung von Versionsnummern
+## Installing Nextcloud
 
-7.4 Erweiterungsmöglichkeiten
-   - Neue Services hinzufügen:
-     Beispiel: Unterstützung von Moodle anhand der Implementierung von Nextcloud in build_compose_services().
-   - Anpassung der Prompts:
-     Zusätzliche Konfigurationsoptionen können in prompt_installation_settings() integriert werden.
-   - Erweiterung des Updateprozesses:
-     Verfeinerung des Update-Workflows durch weitere Prüfungen oder Anpassungen.
+### Automated Installation
+```bash
+python nextcloud-cli.py
+```
+This will set up the following directory structure:
+```plaintext
+/srv/docker/nextcloud/
+├── docker-compose.yml
+├── nextcloud.env
+├── nextcloud-nginx/
+│   ├── nginx.conf
+│   ├── Dockerfile
+├── data/
+│   ├── nc_postgres/
+│   ├── nc_redis/
+│   ├── nc_html/
+│   ├── nc_config/
+│   ├── nc_custom_apps/
+│   ├── nc_data/
+│   ├── nginx_conf/
+```
 
-8. Fehlerbehebung und FAQ
---------------------------
-Probleme                     Mögliche Ursache                           Lösung
--------------------------    -----------------------------------------    -------------------------------------------
-Container startet nicht      Falsche Konfiguration / fehlende Verzeichnisse   Überprüfe die docker-compose.yml und Dateirechte
-Fehler beim Versionsabruf    Netzwerkprobleme oder API-Änderungen         Prüfe die Internetverbindung und aktualisiere Timeouts
-Berechtigungsprobleme        Fehlende Zugriffsrechte                      Stelle sicher, dass der Benutzer ausreichende Rechte besitzt
+### Manual Installation
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/netzint/nextcloud-cli.git /srv/docker/nextcloud
+   ```
+2. **Copy Configuration File**
+   ```bash
+   cp /srv/docker/nextcloud/nextcloud.env.example /srv/docker/nextcloud/nextcloud.env
+   ```
+3. **Modify Passwords in nextcloud.env**
+   Edit `/srv/docker/nextcloud/nextcloud.env` and change:
+   ```plaintext
+   POSTGRES_PASSWORD=YOUR_SECURE_PASSWORD
+   NEXTCLOUD_DB_PASSWORD=YOUR_SECURE_PASSWORD
+   REDIS_PASS=YOUR_SECURE_PASSWORD
+   NEXTCLOUD_ADMIN_PASSWORD=YOUR_SECURE_PASSWORD
+   ```
+4. **Configure Trusted Domains**
+   Open `/srv/docker/nextcloud/nextcloud.env` and set `NEXTCLOUD_TRUSTED_DOMAINS`:
+   ```plaintext
+   NEXTCLOUD_TRUSTED_DOMAINS=your.domain.com
+   ```
+5. **Start the containers**
+   ```bash
+   cd /srv/docker/nextcloud
+   docker-compose up -d
+   ```
 
-FAQ:
-Q: Was tun, wenn der Updateprozess fehlschlägt?
-A: Lies die Konsolenausgabe, prüfe die Log-Dateien und stelle sicher, dass alle Abhängigkeiten (Docker, Docker Compose) aktuell sind.
+---
 
-9. Anhang
----------
-Beispiel-Codeausschnitt: Update der Docker Compose Images
+## Updating Nextcloud
 
-def update_docker_compose_images(new_version, service, base_path):
-    """
-    Aktualisiert den Image-Eintrag in der docker-compose.yml für den angegebenen Service.
-    """
-    compose_file = os.path.join(base_path, "docker-compose.yml")
-    with open(compose_file, "r") as file:
-        compose_data = yaml.safe_load(file)
-    if service in compose_data.get("services", {}):
-        compose_data["services"][service]["image"] = f"nextcloud:{new_version}"
-    with open(compose_file, "w") as file:
-        yaml.dump(compose_data, file, default_flow_style=False)
+```bash
+python nextcloud-cli.py
+```
+The script will:
+- Detect the currently installed Nextcloud version
+- Fetch and update to the latest version
+- Offer optional updates for PostgreSQL, Redis, and Nginx
+- Restart Nextcloud automatically
 
-10. Lizenz und Mitwirkende
----------------------------
-Dieses Projekt steht unter der MIT-Lizenz. Beiträge und Feedback sind jederzeit willkommen.
-Für Fehlerberichte oder Feature-Wünsche bitte ein Issue im Repository eröffnen.
-
---------------------------------------------------
-Vielen Dank, dass du den Netzint CLI nutzt!
-Für weitere Fragen oder Unterstützung konsultiere bitte auch die Inline-Kommentare im Quellcode.
---------------------------------------------------
+---
